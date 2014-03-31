@@ -47,6 +47,7 @@ define solr::instance (
       if ($cloud) {
         if ($zookeeper_servers != '') {
           $zookeeper_ensemble=$zookeeper_servers
+          notify{"https://${settings::certname}:8081\",'resources/Zookeeper::Ensemble::Component::Node',\"['~', 'title', '${cluster}']\"":}
         } else {
           $nodes = puppetdb_query("https://${settings::certname}:8081",'resources/Zookeeper::Ensemble::Component::Node',"['~', 'title', '${cluster}']")
           $n_result=inline_template('<%= @nodes.size %>')
@@ -63,6 +64,7 @@ define solr::instance (
           }
         }
       }
+
 
       solr::instance::jetty::config {$in:
         cloud               => $cloud,
