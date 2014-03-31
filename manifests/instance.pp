@@ -13,6 +13,8 @@ define solr::instance (
   $port,
   $solr_version,
   $solr_root            = '/opt',
+  $cloud                = true,
+  $zookeeper_servers    = '',
 ) {
 
   $in = $instance_name?{
@@ -27,67 +29,64 @@ define solr::instance (
 
   case $app_server {
     'jetty': {
-      jetty::instance{$in:
-        version               => $jetty_version,
-        package_s3_bucket     => $jetty_s3_bucket,
-        package_download_url  => $jetty_download_url,
-        root                  => $jetty_root,
-        user                  => $jetty_user,
-        user_uid              => $jetty_uid,
-        user_gid              => $jetty_gid,
-        listen                => $listen,
-        port                  => $port,
+
+      solr::instance::jetty::install {$in:
+        jetty_version       => $jetty_version,
+        jetty_s3_bucket     => $jetty_s3_bucket,
+        jetty_download_url  => $jetty_download_url,
+        jetty_root          => $jetty_root,
+        jetty_user          => $jetty_user,
+        jetty_uid           => $jetty_uid,
+        jetty_gid           => $jetty_gid,
+        listen              => $listen,
+        port                => $port,
+        solr_version        => $solr_version,
+        solr_root           => $solr_root,
       }
 
-      jetty::instance::deploy {"solr-${in}":
-        context_name  => 'solr',
-        instance_name => $in,
-        war_source    => "puppet:///modules/solr/solr-${solr_version}.war",
-        war_path      => '/opt',
-        war_name      => "solr-${solr_version}.war",
+      if ($cloud) {
+        if ($zookeeper_servers != '') {
+          $zookeeper_ensemble=$zookeeper_servers
+        } else {
+          $nodes = puppetdb_query("https://${settings::certname}:8081",'resources/Zookeeper::Ensemble::Component::Node',"['~', 'title', '${cluster}']")
+          $n_result=inline_template('<%= @nodes.size %>')
+          if $n_result == '0' {
+            fail('no zookeeper ensemble found!')
+          }
+          $zookeepers=inline_template('<% @nodes.each do |node| %><%= node["parameters"]["address"] %>:<%= node["parameters"]["client_port"] %>,<% end %>')
+          # se un nodo zookeeper è chrootato lo sono tutti. Controllo solo il primo risultato nell'array
+          $chroot=inline_template('<%= @nodes[0]["parameters"]["chroot"] %>')
+          if $chroot == 'true' {
+            $zookeeper_ensemble=regsubst($zookeepers,',$',"/${cluster}")
+          } else {
+            $zookeeper_ensemble=regsubst($zookeepers,',$','')
+          }
+        }
       }
 
-      jetty::instance::java_options{"solr_home-${in}":
-        instance_name => $in,
-        option        => "-Dsolr.solr.home=${solr_root}/solr-${in}"
+      solr::instance::jetty::config {$in:
+        cloud               => $cloud,
+        solr_root           => $solr_root,
+        solr_version        => $solr_version,
+        zookeeper_ensemble  => $zookeeper_ensemble
       }
 
-      file {"${solr_root}/solr-${in}":
-        ensure  => directory,
-        owner   => $jetty_user,
-        group   => $jetty_user,
-        mode    => '0775',
+      solr::instance::jetty::service {$in:
+        listen  => $listen,
+        port    => $port
       }
 
-      file{"${solr_root}/solr-${in}/bin":
-        ensure  => directory,
-        owner   => $jetty_user,
-        group   => $jetty_user,
-        mode    => '0775',
-        require => File["${solr_root}/solr-${in}"],
+      if ($cloud) {
+        Solr::Exported_cloud_index <<| cluster == $cluster |>> {
+          address             => $listen,
+          port                => $port,
+          zookeeper_ensemble  => $zookeeper_ensemble,
+          solr_root           => $solr_root,
+          solr_version        => $solr_version,
+          require             => Solr::Instance::Jetty::Config[$in]
+        }
       }
 
-      file {"${solr_root}/solr-${in}/solr.xml.default":
-        ensure  => present,
-        owner   => $jetty_user,
-        group   => $jetty_user,
-        mode    => '0664',
-        content => template('solr/solr.xml.default.erb'),
-        require => File["${solr_root}/solr-${in}"],
-      }
-
-      exec {"cp solr.xml.default -> solr.xml ${in}":
-        command => "/bin/cp ${solr_root}/solr-${in}/solr.xml.default ${solr_root}/solr-${in}/solr.xml",
-        creates => "${solr_root}/solr-${in}/solr.xml",
-        require => File["${solr_root}/solr-${in}/solr.xml.default"]
-      }
-
-      $test = puppetdb_query('https://puppetmaster.vagrant.local:8081','resources','["=", "title", "Apt"]')
-      notice($test)
-
-      #Jetty::Instance[$in] ->
-      #Jetty::Instance::Deploy['solr']
-      #Jetty::Instance::Java_options['solr_home']
     }
   }
 
