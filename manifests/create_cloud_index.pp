@@ -57,7 +57,7 @@ define solr::create_cloud_index (
     # la curl prende lo stato di uscita della chiamata. Se 200 OK
     command => "/usr/bin/curl -IL -w \"%{response_code}\" 'http://${address}:${port}/solr/admin/collections?action=CREATE&name=${index}&numShards=${num_shards}&replicationFactor=${replication_factor}&collection.configName=${index_type}' -o /dev/null -q | grep 200",
     unless  => "${solr_root}/solr-${solr_version}-scripts/zkcli.sh -z $zookeeper_addr/collections/${index} -cmd list 2> /dev/null",
-    require => Exec["upload_zookeeper_conf_${index_type}"]
+    require => Exec["upload_zookeeper_conf_${index_type}_${index}"]
   }
 
 }
