@@ -50,7 +50,7 @@ define solr::instance (
         if ($zookeeper_servers != '') {
           $zookeeper_ensemble=$zookeeper_servers
         } else {
-          $nodes = puppetdb_query("https://${settings::certname}:8081",'resources/Zookeeper::Ensemble::Component::Node',"['~', 'title', '${cluster}']")
+          $nodes = puppetdb_query("https://${settings::certname}:8081","resources/Zookeeper::Ensemble::Component::Node","[\"~\", \"title\", \"${cluster}\"]")
           $n_result=inline_template('<%= @nodes.size %>')
           if $n_result == '0' {
             fail('no zookeeper ensemble found!')
