@@ -9,6 +9,8 @@ define solr::exported_cloud_index (
   $solr_root,
   $solr_version,
   $index_type,
+  solr_balanced,
+  $zookeeper_balanced,
 ) {
 
   if !defined(Solr::Create_cloud_index[$index]) {
@@ -21,6 +23,8 @@ define solr::exported_cloud_index (
       solr_root           => $solr_root,
       solr_version        => $solr_version,
       index_type          => $index_type,
+      solr_balanced       => $solr_balanced,
+      zookeeper_balanced  => $zookeeper_balanced
     }
   }
 

@@ -15,6 +15,8 @@ define solr::instance (
   $solr_root            = '/opt',
   $cloud                = true,
   $zookeeper_servers    = '',
+  $solr_balanced,
+  $zookeeper_balanced,
 ) {
 
   $in = $instance_name?{
@@ -84,6 +86,8 @@ define solr::instance (
           zookeeper_ensemble  => $zookeeper_ensemble,
           solr_root           => $solr_root,
           solr_version        => $solr_version,
+          solr_balanced       => $solr_balanced,
+          zookeeper_balanced  => $zookeeper_balanced,
           require             => Solr::Instance::Jetty::Config[$in]
         }
       }

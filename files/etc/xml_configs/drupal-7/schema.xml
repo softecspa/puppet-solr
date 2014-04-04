@@ -8,6 +8,7 @@
 
  For more information, on how to customize this file, please see
  http://wiki.apache.org/solr/SchemaXml
+
 -->
 
 <schema name="drupal-4.2-solr-4.x" version="1.3">
