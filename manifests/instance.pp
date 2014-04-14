@@ -17,6 +17,7 @@ define solr::instance (
   $zookeeper_servers    = '',
   $solr_balanced,
   $zookeeper_balanced,
+  $cluster              = $cluster,
 ) {
 
   $in = $instance_name?{
