@@ -18,6 +18,9 @@ define solr::instance (
   $solr_balanced,
   $zookeeper_balanced,
   $cluster              = $cluster,
+  $balancer_cluster     = '',
+  $balancer_port        = '8980',
+
 ) {
 
   $in = $instance_name?{
@@ -93,6 +96,17 @@ define solr::instance (
         }
       }
 
+    }
+  }
+
+  if $balancer_cluster != '' {
+
+    haproxy::balanced_http {"${balancer_cluster}_${port}":
+      cluster_balancer    => $balancer_cluster,
+      balanced_interface  => $listen_interface,
+      balanced_address    => $listen_address,
+      balancer_port       => $balancer_port,
+      port                => $port
     }
   }
 
