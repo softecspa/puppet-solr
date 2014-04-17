@@ -4,15 +4,6 @@ LOGLEVEL=$LOGLEVEL_DEBUG
 
 . $(dirname $(readlink -f $0))/../lib/bash/softec-common.sh || exit
 
-#echo -e "\nSome info based on my default variables:\n"
-#echo -e "Hello I'm '$SCRIPTNAME' running from '$SCRIPTPATH'\n, you can call me shortly '$SHORTNAME'\n"
-#echo -e "I can log in '$LOGFILE', I have a cache dir in '$CACHEDIR', if needed\n"
-#echo -e "My config come from '$CONFDIR/$CONFFILENAME'\n"
-#echo -e "If I send mail, the sender is '$MAILFROM' and I write to '$MAILTO'\n"
-#
-#echo -e "The default LOGLEVEL is normal ($LOGLEVEL_NORMAL), but I set it to "
-#echo -e "debug ($LOGLEVEL_DEBUG) to be more verbose\n"
-
 # Load configuration from default path
 # call with a parameter to get a specific config file
 include_conf
@@ -63,6 +54,8 @@ function clean()
 }
 
 TEMP=`getopt -o :a:w:c:s:dh --long action:,webnn:,collection:,useconf:,confdir:,confname:,shards:,replica:,debug,help -n "$0" -- "$@"`
+log "`whoami` Start with following arguments: ${TEMP}"
+
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
@@ -154,6 +147,7 @@ done
 if [ "x${WEBNN}" == "x" ]; then
     if [[ `$PWD` =~ /var/www/(web[0-9]{1,3})(/.*)?$ ]]; then
         WEBNN=`${PWD} | cut -d/ -f4`
+        log_debug "`$PWD` match webNN, $WEBNN will be used"
     fi
 fi
 
@@ -181,24 +175,28 @@ fi
 #######################################
 
 tmp_resp=`mktemp`
+log_debug "created temporary file $tmp_resp"
 if [ $ACTION == 'delete' ]; then
         get_confirm "[*] You are going do delete collection ${COLLECTION}, all data will be erased. Are you sure? [S/N]"
         # Eseguo la cancellazione
+        log "deleting collection ${COLLECTION}"
         $CURL "http://${SOLR_ADDRESS}/solr/admin/collections?action=DELETE&name=${COLLECTION}" -o $tmp_resp 2> /dev/null
 else
     # se il nome specificato per la collection non ha il prefisso webNN lo aggiungo
     if [[ `echo $COLLECTION` =~ web[0-9]{1,3}-.* ]]; then
         COLLECTION_NAME=$COLLECTION
     else
+        log_debug "add prefix ${WEBNN}- before collection name"
         COLLECTION_NAME="${WEBNN}-${COLLECTION}"
     fi
+    log_debug "collection name will be $COLLECTION_NAME"
     # se l'utente ha specificato una conf gia esistente
     if [ $USECONF == 1 ]; then
         # controllo che la conf indicata esista
         ${ZOOKEEPER_CONF} --action=check --confname=${CONFNAME}
         if [ $? -eq 0 ]; then
-            testa
             get_confirm "[*] Collection named ${COLLECTION_NAME} will be created using config ${CONFNAME}. Shards: ${SHARDS}, ReplicationFactor: ${REPLICA}. Do you confirm [S/N]?"
+            log "creating collection {$COLLECTION_NAME} using conf ${CONFNAME}"
             $CURL "http://${SOLR_ADDRESS}/solr/admin/collections?action=CREATE&name=${COLLECTION_NAME}&numShards=${SHARDS}&replicationFactor=${REPLICA}&collection.configName=${CONFNAME}" -o $tmp_resp 2> /dev/null
         else
             log_error "Config named ${CONFNAME} not exists"
@@ -262,6 +260,7 @@ else
             fi
         fi
         get_confirm "[*] Collection named ${COLLECTION_NAME} will be created using config ${CONFNAME}. Shards: ${SHARDS}, ReplicationFactor: ${REPLICA}. Do you confirm [S/N]?"
+        log "creating collection ${COLLECTION_NAME} using conf ${CONFNAME}"
         $CURL "http://${SOLR_ADDRESS}/solr/admin/collections?action=CREATE&name=${COLLECTION_NAME}&numShards=${SHARDS}&replicationFactor=${REPLICA}&collection.configName=${CONFNAME}" -o $tmp_resp 2> /dev/null
     fi
 fi
