@@ -15,12 +15,6 @@ define solr::instance (
   $solr_root            = '/opt',
   $cloud                = true,
   $zookeeper_servers    = '',
-  $solr_balanced,
-  $zookeeper_balanced,
-  $cluster              = $cluster,
-  $balancer_cluster     = '',
-  $balancer_port        = '8980',
-
 ) {
 
   $in = $instance_name?{
@@ -83,31 +77,17 @@ define solr::instance (
         port    => $port
       }
 
-      if ($cloud) {
-        Solr::Exported_cloud_index <<| cluster == $cluster |>> {
-          address             => $listen,
-          port                => $port,
-          zookeeper_ensemble  => $zookeeper_ensemble,
-          solr_root           => $solr_root,
-          solr_version        => $solr_version,
-          solr_balanced       => $solr_balanced,
-          zookeeper_balanced  => $zookeeper_balanced,
-          require             => Solr::Instance::Jetty::Config[$in]
-        }
-      }
+      #if ($cloud) {
+      #  Solr::Exported_cloud_index <<| cluster == $cluster |>> {
+      #    address             => $listen,
+      #    port                => $port,
+      #    zookeeper_ensemble  => $zookeeper_ensemble,
+      #    solr_root           => $solr_root,
+      #    solr_version        => $solr_version,
+      #    require             => Solr::Instance::Jetty::Config[$in]
+      #  }
+      #}
 
     }
   }
-
-  if $balancer_cluster != '' {
-
-    haproxy::balanced_http {"${balancer_cluster}_${port}":
-      cluster_balancer    => $balancer_cluster,
-      balanced_interface  => $listen_interface,
-      balanced_address    => $listen_address,
-      balancer_port       => $balancer_port,
-      port                => $port
-    }
-  }
-
 }
