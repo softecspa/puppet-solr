@@ -10,6 +10,7 @@ define solr::instance::jetty::install (
   $port,
   $solr_version,
   $solr_root,
+  $java_options,
 ) {
 
   $in = $name
@@ -24,6 +25,7 @@ define solr::instance::jetty::install (
     user_gid              => $jetty_gid,
     listen                => $listen,
     port                  => $port,
+    java_options          => $java_options,
   }
 
   jetty::instance::deploy {"solr-${in}":

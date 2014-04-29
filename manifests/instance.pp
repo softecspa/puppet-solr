@@ -15,6 +15,7 @@ define solr::instance (
   $solr_root            = '/opt',
   $cloud                = true,
   $zookeeper_servers    = '',
+  $java_options         = $java_options,
 ) {
 
   $in = $instance_name?{
@@ -42,6 +43,7 @@ define solr::instance (
         port                => $port,
         solr_version        => $solr_version,
         solr_root           => $solr_root,
+        java_options        => $java_options,
       }
 
       if ($cloud) {
