@@ -15,7 +15,7 @@ define solr::instance (
   $solr_root            = '/opt',
   $cloud                = true,
   $zookeeper_servers    = '',
-  $java_options         = $java_options,
+  $java_options         = '',
 ) {
 
   $in = $instance_name?{
