@@ -6,6 +6,7 @@ define solr::instance::jetty::install (
   $jetty_user,
   $jetty_uid  = undef,
   $jetty_gid  = undef,
+  $jetty_deploy_parameters,
   $listen,
   $port,
   $solr_version,
@@ -29,11 +30,12 @@ define solr::instance::jetty::install (
   }
 
   jetty::instance::deploy {"solr-${in}":
-    context_name  => 'solr',
-    instance_name => $in,
-    war_source    => "puppet:///modules/solr/solr-${solr_version}.war",
-    war_path      => '/opt',
-    war_name      => "solr-${solr_version}.war",
+    context_name    => 'solr',
+    instance_name   => $in,
+    war_source      => "puppet:///modules/solr/solr-${solr_version}.war",
+    war_path        => '/opt',
+    war_name        => "solr-${solr_version}.war",
+    init_parameters => $jetty_deploy_parameters,
   }
 
   file {"${solr_root}/solr-${in}":
