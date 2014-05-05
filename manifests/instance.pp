@@ -17,6 +17,10 @@ define solr::instance (
   $cloud                    = true,
   $zookeeper_servers        = '',
   $java_options             = '',
+  $monitored                = true,
+  $monitored_hostname       = $::hostname,
+  $notifications_enabled    = undef,
+  $notification_period      = undef,
 ) {
 
   $in = $instance_name?{
@@ -79,6 +83,14 @@ define solr::instance (
       solr::instance::jetty::service {$in:
         listen  => $listen,
         port    => $port
+      }
+
+      if $monitored {
+        solr::instance::jetty::monitoring { $in:
+          monitored_hostname      => $monitored_hostname,
+          notifications_enabled   => $notifications_enabled,
+          notification_period     => $notification_period
+        }
       }
 
       #if ($cloud) {
