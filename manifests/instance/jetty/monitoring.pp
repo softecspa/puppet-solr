@@ -32,7 +32,7 @@ define solr::instance::jetty::monitoring (
     service_description   => $service_description,
     notifications_enabled => $notifications_enabled,
     notification_period   => $notification_period,
-    target                => "${::hostname}_solr.cfg",
+    target                => "solr_${::hostname}.cfg",
     params                => $nrpe_check_name,
     tag                   => "nagios_check_solr_${nagios_hostname}",
   }

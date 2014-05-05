@@ -14,8 +14,8 @@ define solr::cloud_monitoring (
     service_description   => 'solr cloud',
     notifications_enabled => $notifications_enabled,
     notification_period   => $notification_period,
-    target                => "${::hostname}_solr.cfg",
-    params                => "check_solr_cloud",
+    target                => "solr_${::hostname}.cfg",
+    params                => "!check_solr_cloud",
     tag                   => "nagios_check_solr_${nagios_hostname}",
   }
 
