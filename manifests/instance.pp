@@ -89,7 +89,15 @@ define solr::instance (
         solr::instance::jetty::monitoring { $in:
           monitored_hostname      => $monitored_hostname,
           notifications_enabled   => $notifications_enabled,
-          notification_period     => $notification_period
+          notification_period     => $notification_period,
+        }
+
+        if !defined(Solr::Cloud_monitoring[$::hostname]) {
+          solr::cloud_monitoring{$::hostname :
+            zookeeper_ensemble      => $zookeeper_ensemble,
+            notifications_enabled   => $notifications_enabled,
+            notification_period     => $notification_period,
+          }
         }
       }
 

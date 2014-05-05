@@ -22,8 +22,8 @@ define solr::instance::jetty::monitoring (
   }
 
   $service_description = $monitored_hostname? {
-    $::hostname => $in,
-    default     => "${::hostname} ${in}",
+    $::hostname => "jetty-$in",
+    default     => "${::hostname} jetty-${in}",
   }
 
   @@nagios::check { "jetty-${in}-${::hostname}":
