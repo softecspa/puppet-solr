@@ -67,7 +67,7 @@ define solr::instance::jetty::install (
     owner   => $jetty_user,
     group   => $jetty_user,
     mode    => '0755',
-    source  => "puppet:///solr/solr-${solr_version}/contrib",
+    source  => "puppet:///modules/solr/solr-${solr_version}/contrib",
     recurse => 'remote',
     require => File["${solr_root}/solr-${in}"],
   }

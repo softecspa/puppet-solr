@@ -5,6 +5,8 @@ define solr::instance::jetty::config (
   $solr_version
 ) {
 
+  $in = $name
+
   jetty::instance::java_options{"solr_home-${in}":
     instance_name => $in,
     option        => "-Dsolr.solr.home=${solr_root}/solr-${in}"
