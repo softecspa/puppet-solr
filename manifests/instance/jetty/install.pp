@@ -32,7 +32,8 @@ define solr::instance::jetty::install (
   jetty::instance::deploy {"solr-${in}":
     context_name    => 'solr',
     instance_name   => $in,
-    war_source      => "puppet:///modules/solr/solr-${solr_version}.war",
+    #war_source      => "puppet:///modules/solr/solr-${solr_version}.war",
+    war_source      => "http://central.maven.org/maven2/org/apache/solr/solr/${solr_version}/solr-${solr_version}.war",
     war_path        => '/opt',
     war_name        => "solr-${solr_version}.war",
     init_parameters => $jetty_deploy_parameters,
